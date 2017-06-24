@@ -14,6 +14,7 @@
 #include "../../qmk_firmware/keyboards/zeal60/zeal_keycode.h"
 
 #include <string>
+#include <string.h>
 
 struct LookupEntry
 {
