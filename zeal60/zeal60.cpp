@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 
-#include "hidapi.h"
+#include <hidapi/hidapi.h>
 
 // Headers needed for sleeping.
 #ifdef _WIN32
