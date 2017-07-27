@@ -131,25 +131,24 @@ hid_open( unsigned short vendor_id, unsigned short product_id, unsigned short us
 std::vector<std::string>
 hid_get_device_paths( unsigned short vendor_id, unsigned short product_id, unsigned short usage_page, unsigned short usage )
 {
-	std::vector<std::string> devicePaths;
-	struct hid_device_info *deviceInfos;
-	struct hid_device_info *currentDeviceInfo;
-	struct hid_device_info *foundDeviceInfo = NULL;
-	deviceInfos = hid_enumerate( vendor_id, product_id );
-	currentDeviceInfo = deviceInfos;
-	while ( currentDeviceInfo )
-	{
-		if ( currentDeviceInfo->usage_page == usage_page &&
-			 currentDeviceInfo->usage == usage )
-		{
-			devicePaths.push_back( currentDeviceInfo->path );
-		}
-		currentDeviceInfo = currentDeviceInfo->next;
-	}
+  std::vector<std::string> devicePaths;
+  struct hid_device_info *deviceInfos;
+  struct hid_device_info *currentDeviceInfo;
+  struct hid_device_info *foundDeviceInfo = NULL;
+  deviceInfos = hid_enumerate( vendor_id, product_id );
+  currentDeviceInfo = deviceInfos;
+  while ( currentDeviceInfo )
+  {
+    std::cout << "path=" << currentDeviceInfo->path << std::endl;
+    std::cout << "interface_number=" << currentDeviceInfo->interface_number << std::endl;
+    if (currentDeviceInfo->interface_number == 2)
+      devicePaths.push_back( currentDeviceInfo->path );
+    currentDeviceInfo = currentDeviceInfo->next;
+  }
 
-	hid_free_enumeration(deviceInfos);
+  hid_free_enumeration(deviceInfos);
 
-	return devicePaths;	
+  return devicePaths;
 }
 
 bool send_message( hid_device *device, uint8_t id, void *outMsg = NULL, uint8_t outMsgLength = 0, void *retMsg = NULL, uint8_t retMsgLength = 0 )
@@ -272,13 +271,15 @@ hid_open_least_uptime( unsigned short vendor_id, unsigned short product_id, unsi
 	// early abort
 	if ( devicePaths.size() == 0 )
 	{
+    std::cout << "devicePaths.size() == 0" << std::endl;
 		return NULL;
 	}
 
 	// no need to check ticks
 	if ( devicePaths.size() == 1 )
 	{
-		return hid_open_path( devicePaths[0].c_str() ); 
+    std::cout << "open " << devicePaths[0] << std::endl;
+		return hid_open_path( devicePaths[0].c_str() );
 	}
 
 	std::string bestDevicePath;
@@ -287,8 +288,9 @@ hid_open_least_uptime( unsigned short vendor_id, unsigned short product_id, unsi
 	for ( int i=0; i<(int)devicePaths.size(); i++ )
 	{
 		hid_device *device = hid_open_path( devicePaths[i].c_str() );
-		
+
 		msg_protocol_version msgProtocolVersion;
+
 		if ( !protocol_version( device, &msgProtocolVersion ) )
 		{
 			std::cerr << "*** Error: Error getting protocol version" << std::endl;
@@ -317,7 +319,9 @@ hid_open_least_uptime( unsigned short vendor_id, unsigned short product_id, unsi
 
 		if ( bestDevicePath.empty() || msgSystemState.value < bestDeviceTick )
 		{
+
 			bestDevicePath = devicePaths[i];
+      std::cout << "bestdevicePath: " << bestDevicePath << std::endl;
 			bestDeviceTick = msgSystemState.value;
 		}
 
@@ -339,7 +343,7 @@ int main(int argc, char **argv)
 		std::cerr << "*** Error: hidapi initialization failed" << std::endl;
 		return -1;
 	}
-
+  std::cout << "Try to open: " << std::hex << DEVICE_VID<< ":" << std::hex << DEVICE_PID << std::endl;
 	hid_device *device = hid_open_least_uptime( DEVICE_VID, DEVICE_PID, DEVICE_USAGE_PAGE, DEVICE_USAGE );
 	if ( ! device )
 	{
